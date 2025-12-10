@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-dingtalk-doc"
+version = "1.0.0"
+description = "钉钉文档解析 MCP 服务器 - 支持文档内容提取、HTML生成"
+authors = [
+    {name = "黄云堃", email = "huang.yunkun@hellogroup.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["mcp", "dingtalk", "document", "parser"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "httpx>=0.27.0",
+    "beautifulsoup4>=4.12.0",
+    "pydantic>=2.0.0",
+    "pycryptodome>=3.19.0",
+    "urllib3>=2.0.0",
+]
+
+[project.optional-dependencies]
+# 可选：自动 Cookie 管理功能
+auto-cookie = [
+    "playwright>=1.40.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/mcp-dingtalk-doc"
+Documentation = "https://github.com/yourusername/mcp-dingtalk-doc#readme"
+Repository = "https://github.com/yourusername/mcp-dingtalk-doc.git"
+
+[project.scripts]
+mcp-dingtalk-doc = "mcp_dingtalk_doc.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_dingtalk_doc"]
+

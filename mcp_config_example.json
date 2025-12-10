@@ -3,11 +3,10 @@
     "dingtalk-doc": {
       "command": "python3",
       "args": [
-        "~/Documents/AIGC/cursor-mcp/mcp_dingtalk_doc/server.py"
+        "/Users/huangyunkun/Documents/AIGC/dingtalk_api/mcp_dingtalk_doc/server.py"
       ],
       "env": {
-        "DINGTALK_COOKIE": "your_dingtalk_cookie_here",
-        "DINGTALK_DOC_OUTPUT_DIR": "~/Documents/cursor-mcp/dingDoc"
+        "DINGTALK_COOKIE": "your_dingtalk_cookie_here"
       }
     }
   }
