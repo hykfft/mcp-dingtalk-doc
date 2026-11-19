@@ -109,7 +109,7 @@ async function testCookie(cookie: string): Promise<boolean> {
       maxRedirects: 0,
     });
 
-    const html = response.data;
+    const html = typeof response.data === 'string' ? response.data : '';
 
     // 如果返回登录页，说明 Cookie 无效
     if (
@@ -129,4 +129,3 @@ async function testCookie(cookie: string): Promise<boolean> {
     return true;
   }
 }
-

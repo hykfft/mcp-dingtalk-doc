@@ -1,32 +1,65 @@
 {
-  "name": "mcp-dingtalk-doc-nodejs",
-  "version": "1.0.0",
-  "description": "钉钉文档解析 MCP 服务器 - Node.js/TypeScript 实现",
+  "name": "mcp-dingtalk-doc",
+  "version": "1.1.1",
+  "description": "钉钉文档解析 MCP 服务器 - Node.js/TypeScript 实现，支持智能 Cookie 管理和自动登录",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "mcp-dingtalk-doc": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "watch": "tsc --watch",
-    "postinstall": "npx playwright install chromium",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "postinstall": "npx playwright install chromium --with-deps || echo 'Playwright安装可选，首次使用自动登录时会提示安装'",
+    "precheck": "node scripts/pre-publish-check.js",
     "cookie:login": "tsx src/cookie-manager.ts --login",
     "cookie:check": "tsx src/cookie-manager.ts --check",
     "cookie:show": "tsx src/cookie-manager.ts --show",
     "cookie:delete": "tsx src/cookie-manager.ts --delete",
-    "cookie:auto": "tsx src/cookie-manager.ts --auto"
+    "cookie:auto": "tsx src/cookie-manager.ts --auto",
+    "playwright:install": "npx playwright install chromium"
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
+    "MCP",
     "dingtalk",
+    "DingTalk",
+    "钉钉",
+    "钉钉文档",
+    "DingTalk Docs",
+    "alidocs",
+    "AliDocs",
     "document-parser",
-    "alidocs"
+    "html-generator",
+    "typescript",
+    "cursor",
+    "Cursor",
+    "ai-tools"
   ],
-  "author": "Your Name",
+  "author": "shinjiyu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hykfft/mcp-dingtalk-doc.git",
+    "directory": "nodejs"
+  },
+  "bugs": {
+    "url": "https://github.com/hykfft/mcp-dingtalk-doc/issues"
+  },
+  "homepage": "https://github.com/hykfft/mcp-dingtalk-doc#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
     "axios": "^1.6.0",
@@ -40,6 +73,11 @@
     "typescript": "^5.3.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

@@ -37,9 +37,18 @@ export class DingTalkCookieManager {
 
   /**
    * 智能获取 Cookie（先验证现有 Cookie，失败则弹窗登录）
+   * @param headless 是否无头模式
+   * @param timeout 超时毫秒
    * @param testDocUrl 用于验证 Cookie 的测试文档 URL（可选）
+   * @param forceLogin 为 true 时跳过已有 Cookie 校验，直接弹窗登录（用于“文档请求未授权”时触发登录）
    */
-  async autoLogin(headless: boolean = false, timeout: number = 300000, testDocUrl?: string): Promise<string | null> {
+  async autoLogin(
+    headless: boolean = false,
+    timeout: number = 300000,
+    testDocUrl?: string,
+    forceLogin: boolean = false
+  ): Promise<string | null> {
+
     if (!PLAYWRIGHT_AVAILABLE) {
       throw new Error(
         '\n❌ Playwright 未安装\n\n' +
@@ -54,26 +63,30 @@ export class DingTalkCookieManager {
       );
     }
 
-    // 第一步：检查是否有保存的 Cookie
-    console.log('🔍 检查现有 Cookie...');
-    await this.loadCookies();
-    const existingCookie = this.getCookieString();
+    if (!forceLogin) {
+      // 第一步：检查是否有保存的 Cookie
+      console.log('🔍 检查现有 Cookie...');
+      await this.loadCookies();
+      const existingCookie = this.getCookieString();
 
-    if (existingCookie) {
-      console.log(`✅ 找到保存的 Cookie (${existingCookie.length} 字符)`);
+      if (existingCookie) {
+        console.log(`✅ 找到保存的 Cookie (${existingCookie.length} 字符)`);
 
-      // 第二步：用 HTTP request 验证 Cookie 是否有效
-      console.log('🔍 验证 Cookie 有效性...');
-      const isValid = await this.testCookieWithRequest(existingCookie, testDocUrl);
+        // 第二步：用 HTTP request 验证 Cookie 是否有效
+        console.log('🔍 验证 Cookie 有效性...');
+        const isValid = await this.testCookieWithRequest(existingCookie, testDocUrl);
 
-      if (isValid) {
-        console.log('✅ Cookie 有效，无需重新登录');
-        return existingCookie;
+        if (isValid) {
+          console.log('✅ Cookie 有效，无需重新登录');
+          return existingCookie;
+        }
+
+        console.log('⚠️  Cookie 已过期或无效');
+      } else {
+        console.log('⚠️  没有找到保存的 Cookie');
       }
-
-      console.log('⚠️  Cookie 已过期或无效');
     } else {
-      console.log('⚠️  没有找到保存的 Cookie');
+      console.log('🔐 检测到未授权（文档页面需要登录），将打开浏览器请登录...');
     }
 
     // 第三步：需要登录，打开可见浏览器
@@ -83,13 +96,9 @@ export class DingTalkCookieManager {
 
     console.log();
     console.log('📝 操作步骤：');
-    console.log('  1. 浏览器将自动打开钉钉文档页面');
-    console.log('  2. 请扫码或输入账号密码登录');
-    console.log('  3. 登录成功后，随便打开一个文档验证能否访问');
-    console.log('  4. 确认能看到文档内容后，【手动关闭浏览器窗口】');
-    console.log('  5. 浏览器关闭后，Cookie 将自动保存');
+    console.log('  1. 在浏览器中完成登录（扫码或输入账号密码）');
+    console.log('  2. 登录成功后，关闭浏览器窗口即可继续');
     console.log();
-    console.log('⚠️  重要：请务必手动关闭浏览器，不要在控制台按 Ctrl+C');
     console.log('='.repeat(70));
     console.log();
 
@@ -125,45 +134,53 @@ export class DingTalkCookieManager {
       console.log();
       console.log('⏳ 等待您完成登录...');
       console.log();
-      console.log('💡 完成登录后有两种方式继续：');
-      console.log('   方式1: 关闭浏览器窗口（推荐）');
-      console.log('   方式2: 在此控制台按 Enter 键');
+      console.log('📝 重要提示：');
+      console.log('   1. 请在浏览器中完成登录（扫码或输入账号密码）');
+      console.log('   2. 登录成功后，确保能看到文档内容');
+      console.log('   3. 完成登录后，请【关闭浏览器窗口】以继续');
+      console.log();
+      console.log('⚠️  注意：在 MCP 中运行时请勿使用「按 Enter」方式，请务必关闭浏览器窗口');
       console.log();
 
-      // 定期获取 Cookie，直到浏览器关闭或用户按 Enter
+      // 定期获取 Cookie，直到浏览器关闭（不监听 stdin，避免 MCP 的 stdio 数据误触发）
       let latestCookies: any[] = [];
       let browserClosed = false;
-      let userPressedEnter = false;
 
       // 监听浏览器关闭事件
-      browser.on('disconnected', () => {
+      browser.on('disconnected', async () => {
         console.log('   [检测到浏览器断开连接]');
+        // 在关闭前尝试获取最后一次 Cookie
+        try {
+          const finalCookies = await context.cookies();
+          if (finalCookies && finalCookies.length > 0) {
+            latestCookies = finalCookies;
+          }
+        } catch (error) {
+        }
         browserClosed = true;
       });
 
       // 监听页面关闭事件
-      page.on('close', () => {
+      page.on('close', async () => {
         console.log('   [检测到页面关闭]');
+        // 在关闭前尝试获取最后一次 Cookie
+        try {
+          const finalCookies = await context.cookies();
+          if (finalCookies && finalCookies.length > 0) {
+            latestCookies = finalCookies;
+          }
+        } catch (error) {
+        }
         browserClosed = true;
       });
 
-      // 监听用户输入 Enter
-      const readline = await import('readline');
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
-
-      rl.on('line', () => {
-        console.log('   [检测到 Enter 键]');
-        userPressedEnter = true;
-        rl.close();
-      });
+      // 不监听 stdin：MCP 通过 stdio 与 Cursor 通信，stdin 会收到协议数据，
+      // 会被 readline 误当作「用户按 Enter」，导致浏览器立即关闭。只等待浏览器关闭。
 
       // 定期获取 Cookie（每 2 秒一次）
       const cookieInterval = setInterval(async () => {
         try {
-          if (!browserClosed && !userPressedEnter) {
+          if (!browserClosed) {
             latestCookies = await context.cookies();
           }
         } catch (error) {
@@ -175,8 +192,7 @@ export class DingTalkCookieManager {
       // 定期检查浏览器状态
       const checkInterval = setInterval(async () => {
         try {
-          // 尝试获取 Cookie 来检查浏览器是否还活着
-          if (!browserClosed && !userPressedEnter) {
+          if (!browserClosed) {
             await context.cookies();
           }
         } catch (error) {
@@ -185,14 +201,13 @@ export class DingTalkCookieManager {
         }
       }, 1000);
 
-      // 等待浏览器关闭或用户按 Enter
+      // 只等待浏览器关闭（不等待 stdin，避免 MCP 协议数据误触发）
       await new Promise<void>((resolve) => {
         const waitInterval = setInterval(() => {
-          if (browserClosed || userPressedEnter) {
+          if (browserClosed) {
             clearInterval(waitInterval);
             clearInterval(cookieInterval);
             clearInterval(checkInterval);
-            rl.close();
             resolve();
           }
         }, 100);
@@ -204,12 +219,38 @@ export class DingTalkCookieManager {
       console.log('🔍 正在保存 Cookie...');
       const cookies = latestCookies;
 
+      // 验证 Cookie 是否有效
+      if (!cookies || cookies.length === 0) {
+        throw new Error('Cookie 为空，请确保已完成登录后再关闭浏览器或按 Enter');
+      }
+
+      // 检查是否有有效的登录 Cookie
+      const hasValidCookie = cookies.some(
+        (c: any) =>
+          c.name.includes('ding') ||
+          c.name.includes('login') ||
+          c.name.includes('session') ||
+          c.name.includes('token') ||
+          c.value.length > 50
+      );
+
+      if (!hasValidCookie || cookies.length < 3) {
+        throw new Error(
+          'Cookie 无效或数量太少，请确保已完成登录。建议：关闭浏览器窗口而不是按 Enter，这样可以确保登录完成后再继续。'
+        );
+      }
+
       // 保存 Cookie
       await this.saveCookies(cookies);
 
+      const cookieString = this.getCookieString();
+      if (!cookieString || cookieString.length < 50) {
+        throw new Error('保存的 Cookie 无效，请重新登录');
+      }
+
       console.log(`✅ Cookie 已保存到: ${path.resolve(this.cookieFile)}`);
 
-      return this.getCookieString();
+      return cookieString;
     } finally {
       await browser.close();
     }
@@ -397,13 +438,17 @@ export class DingTalkCookieManager {
       });
 
       // 检查响应
-      const html = response.data;
+      const html = typeof response.data === 'string' ? response.data : '';
+      const hasNeedLogin = html.includes('needLogin: true');
+      const hasLoginPageVars = html.includes('LOGIN_PAGE_VARS');
+      const hasAuthText = html.includes('身份认证');
+      const hasMainsiteContent = html.includes('mainsite_server_content');
 
       // 如果包含登录相关内容，说明 Cookie 无效
       if (
-        html.includes('needLogin: true') ||
-        html.includes('LOGIN_PAGE_VARS') ||
-        html.includes('身份认证') ||
+        hasNeedLogin ||
+        hasLoginPageVars ||
+        hasAuthText ||
         response.status === 302 ||  // 重定向
         response.status === 401 ||  // 未授权
         response.status === 403     // 禁止访问

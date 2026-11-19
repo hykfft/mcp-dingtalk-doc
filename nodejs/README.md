@@ -1,20 +1,64 @@
-# 钉钉文档解析 MCP 服务器 - Node.js 版本
+# mcp-dingtalk-doc
 
-🚀 用 TypeScript 重写的钉钉文档解析 MCP 服务器，更快、更轻量！
+<div align="center">
+
+[![npm version](https://img.shields.io/npm/v/mcp-dingtalk-doc.svg)](https://www.npmjs.com/package/mcp-dingtalk-doc)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3%2B-blue)](https://www.typescriptlang.org/)
+
+🚀 DingTalk Docs（钉钉文档）解析 MCP Server - Node.js/TypeScript 实现
+
+**Keywords**: DingTalk Docs / 钉钉文档 / MCP / Model Context Protocol / Cursor MCP
+
+</div>
 
 ## ✨ 特性
 
-- 🚀 **更快** - 启动时间 ~100ms (Python 版本 ~500ms)
-- 💾 **更小** - 包体积 ~30MB (Python 版本 ~50MB)
-- 📦 **更简单** - npm 一键安装
+- 🚀 **高性能** - 启动时间约 100ms
+- 📦 **轻量级** - 包体积约 30MB
+- 🍪 **智能 Cookie 管理** - 自动检测失效并引导登录
+- 🌐 **Playwright 自动登录** - 浏览器自动弹出，扫码即用
+- 💾 **Cookie 持久化** - 7-30 天内无需重新登录
 - 🎯 **类型安全** - TypeScript 原生类型检查
 - ⚡ **原生异步** - async/await 原生支持
+- 📊 **多元素支持** - 段落、表格、图片、代码块、富文本
+- 🎨 **美观渲染** - 渐变色 UI + 深色代码主题
+- 🔄 **零配置** - 首次使用自动引导登录，无需手动配置 Cookie
 
 ## 📦 安装
 
+> **平台差异**：**Windows** 需全局安装，MCP 配置里直接使用命令 `mcp-dingtalk-doc`；**macOS** 可用 npx，无需全局安装。
+
+### macOS：npx 直接使用（推荐）✨
+
+**仅 macOS/Linux** 支持。无需安装，MCP 配置中使用 `npx` 即可（完整示例见下方「配置 MCP」章节）：
+
+```json
+"command": "npx",
+"args": ["-y", "mcp-dingtalk-doc"]
+```
+
+### Windows：必须全局安装
+
+**Windows 下无法使用 npx**，请先全局安装，再在 MCP 里配置命令 `mcp-dingtalk-doc`：
+
 ```bash
-# 进入项目目录
-cd mcp-dingtalk-doc-nodejs
+npm install -g mcp-dingtalk-doc
+```
+
+MCP 配置中直接写：
+
+```json
+"command": "mcp-dingtalk-doc"
+```
+
+### 从源码安装（所有平台）
+
+```bash
+# 克隆仓库
+git clone https://github.com/hykfft/mcp-dingtalk-doc.git
+cd mcp-dingtalk-doc/nodejs
 
 # 安装依赖
 npm install
@@ -74,28 +118,81 @@ npm run dev
 npm start
 ```
 
-### 4. 配置 MCP (Cursor)
+### 4. 配置 MCP (Cursor/Claude Desktop)
 
-编辑 Cursor 配置文件：
+配置文件路径：
 
-**Windows**: `%APPDATA%\Cursor\mcp.json`  
-**Mac/Linux**: `~/.cursor/mcp.json` 或 `~/Library/Application Support/Cursor/mcp.json`
+- **Cursor**：Windows `%APPDATA%\Cursor\mcp.json`；Mac `~/.cursor/mcp.json` 或 `~/Library/Application Support/Cursor/mcp.json`
+- **Claude Desktop**：Windows `%APPDATA%\Claude\claude_desktop_config.json`；Mac `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+---
+
+## ⚠️ Windows 与 macOS 配置（必读）
+
+| 平台 | 安装方式 | MCP 配置 |
+|------|----------|----------|
+| **Windows** | 必须全局安装：`npm install -g mcp-dingtalk-doc` | 直接配置命令 `mcp-dingtalk-doc` |
+| **macOS / Linux** | 可不安装，用 npx | 使用 `npx` + `mcp-dingtalk-doc` |
+
+### 🪟 Windows：全局安装 + 直接配 mcp-dingtalk-doc
+
+1. 全局安装：
+   ```bash
+   npm install -g mcp-dingtalk-doc
+   ```
+2. MCP 配置里**只写命令** `mcp-dingtalk-doc`（不要用 npx）：
+   ```json
+   {
+     "mcpServers": {
+       "dingtalk-doc": {
+         "command": "mcp-dingtalk-doc"
+       }
+     }
+   }
+   ```
+3. 重启 Cursor。
+
+### 🍎 macOS / Linux：可用 npx（无需全局安装）
+
+MCP 配置示例：
 
 ```json
 {
   "mcpServers": {
-    "dingtalk-doc-nodejs": {
-      "command": "node",
-      "args": [
-        "C:/path/to/mcp-dingtalk-doc-nodejs/dist/index.js"
-      ],
-      "env": {
-        "DINGTALK_COOKIE": "你的Cookie"
-      }
+    "dingtalk-doc": {
+      "command": "npx",
+      "args": ["-y", "mcp-dingtalk-doc"]
     }
   }
 }
 ```
+
+- 仅 Mac/Linux 支持此种方式；Windows 请用上方「Windows」配置。
+
+### 🔍 为什么 Windows 不能用 npx？
+
+Windows 下 npx 执行 bin 脚本存在兼容问题，需通过全局安装得到 `.cmd` 包装脚本，因此 **Windows 必须全局安装，MCP 直接配置 `mcp-dingtalk-doc`**。
+
+---
+
+#### 从源码使用（所有平台）
+
+如果从源码克隆安装：
+
+```json
+{
+  "mcpServers": {
+    "dingtalk-doc": {
+      "command": "node",
+      "args": [
+        "/path/to/nodejs/dist/index.js"
+      ]
+    }
+  }
+}
+```
+
+⚠️ 注意：Windows 路径使用 `C:/path/to/...` 或 `C:\\path\\to\\...`
 
 ## 🎯 使用方法
 
@@ -159,14 +256,16 @@ mcp-dingtalk-doc-nodejs/
 
 ## 🆚 与 Python 版本对比
 
-| 特性 | Python 版本 | Node.js 版本 | 优势 |
-|------|------------|--------------|------|
-| **启动时间** | ~500ms | ~100ms | Node.js 快 5x |
-| **包体积** | ~50MB | ~30MB | Node.js 小 40% |
-| **代码量** | ~1500 行 | ~600 行 | Node.js 少 60% |
-| **MCP SDK** | 社区 | 官方主推 | Node.js ✅ |
-| **异步处理** | asyncio | 原生 | Node.js ✅ |
-| **类型安全** | Pydantic | TypeScript | Node.js ✅ |
+| 特性 | Python 版本 | Node.js 版本 |
+|------|------------|--------------|
+| **启动时间** | ~500ms | ~100ms |
+| **包体积** | ~50MB | ~30MB |
+| **代码量** | ~1500 行 | ~600 行 |
+| **MCP SDK** | 社区版 | 官方 SDK |
+| **异步处理** | asyncio | async/await |
+| **类型安全** | Pydantic | TypeScript |
+| **Cookie 管理** | 手动配置 | 智能自动管理 |
+| **自动登录** | ❌ | ✅ Playwright |
 
 ## 📖 支持的元素
 
@@ -288,10 +387,12 @@ MCP 使用 stdio 通信，不需要端口。
 
 ## 🎯 下一步计划
 
-- [ ] 实现 Cookie 自动管理
+- [x] ~~实现 Cookie 自动管理~~ ✅
+- [x] ~~发布到 npm~~ ✅
 - [ ] 支持更多文档元素（列表、引用块）
-- [ ] 图片自动下载
-- [ ] 发布到 npm
+- [ ] 图片自动下载到本地
+- [ ] 支持批量文档解析
+- [ ] 支持文档导出为 Markdown
 
 ## 📄 许可证
 
@@ -299,9 +400,20 @@ MIT License
 
 ## 👨‍💻 作者
 
-基于 Python 版本重写
+- **shinjiyu** - TypeScript 重写 + 智能 Cookie 管理
+- **原作者**: 黄云堃 (Yunkun Huang) - Python 版本
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📚 相关链接
+
+- [GitHub 仓库](https://github.com/hykfft/mcp-dingtalk-doc)
+- [Model Context Protocol](https://modelcontextprotocol.io)
+- [钉钉文档](https://alidocs.dingtalk.com)
+- [MCP SDK (TypeScript)](https://github.com/modelcontextprotocol/typescript-sdk)
 
 ---
 
-**快速开始**：安装依赖 → 获取 Cookie → 配置 MCP → 使用！🚀
-
+**快速开始**：`npm install -g mcp-dingtalk-doc` → 配置 MCP → 使用！🚀

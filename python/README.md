@@ -1,6 +1,8 @@
-# 钉钉文档解析 MCP 服务器
+# DingTalk Docs（钉钉文档）解析 MCP Server
 
-一个用于解析钉钉文档内容并生成HTML的MCP服务器。
+一个用于解析 **钉钉文档（DingTalk Docs / AliDocs）** 内容并生成 HTML 的 **MCP（Model Context Protocol）** 服务器。
+
+**Keywords**: 钉钉文档 / DingTalk Docs / MCP / Model Context Protocol / Cursor MCP
 
 ## ✨ 功能特性
 

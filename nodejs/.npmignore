@@ -1,0 +1,69 @@
+# Source files
+src/
+tsconfig.json
+
+# Scripts
+scripts/
+
+# Development files
+*.bat
+*.sh
+AUTO_LOGIN.md
+configure-cursor.bat
+quick-start.bat
+quick-start.sh
+setup.bat
+setup.sh
+PUBLISHING.md
+PUBLISH_CHECKLIST.md
+CONTRIBUTING.md
+
+# Test files
+test/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Build artifacts
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Cookie storage (don't publish user data)
+.dingtalk-cookie
+cookie.json
+

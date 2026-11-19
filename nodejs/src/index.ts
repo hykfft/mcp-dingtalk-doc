@@ -14,6 +14,45 @@ import {
 import { z } from 'zod';
 import { checkCookie } from './utils.js';
 import { getCompleteDocumentData } from './document-parser.js';
+import { DingTalkCookieManager } from './cookie-manager.js';
+
+/** 文档请求未授权时的错误特征（需触发登录弹窗） */
+const UNAUTHORIZED_MESSAGE = '未找到 mainsite_server_content';
+
+async function runWithLoginRetry<T>(
+  initialCookie: string | undefined,
+  urlOrNodeId: string,
+  run: (cookie: string) => Promise<T>
+): Promise<T> {
+  const cookie = await checkCookie(initialCookie);
+
+  try {
+    const result = await run(cookie);
+    return result;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+
+    if (!msg.includes(UNAUTHORIZED_MESSAGE)) {
+      throw err;
+    }
+
+    // 文档页未授权：弹窗让用户登录，再重试一次
+    console.error('\n⚠️ 文档页面需要登录，正在打开浏览器...');
+
+    try {
+      const manager = new DingTalkCookieManager();
+      const newCookie = await manager.autoLogin(false, 300000, undefined, true);
+      if (!newCookie) {
+        throw new Error('登录失败或超时，请稍后重试');
+      }
+
+      const retryResult = await run(newCookie);
+      return retryResult;
+    } catch (loginErr) {
+      throw loginErr;
+    }
+  }
+}
 
 // ==================== 数据验证 ====================
 const DingTalkDocRequestSchema = z.object({
@@ -99,13 +138,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === 'parse_document') {
     try {
       const args = DingTalkDocRequestSchema.parse(request.params.arguments);
-      const cookie = await checkCookie(args.cookie);
 
-      const result = await getCompleteDocumentData(
+      const result = await runWithLoginRetry(
+        args.cookie,
         args.url_or_node_id,
-        cookie,
-        args.save_files,
-        args.output_dir
+        (cookie) =>
+          getCompleteDocumentData(
+            args.url_or_node_id,
+            cookie,
+            args.save_files,
+            args.output_dir
+          )
       );
 
       const output = ['✅ 钉钉文档解析成功！', `\n📌 节点ID: ${result.node_id}`, `🔑 Dentry Key: ${result.dentry_key}`];
@@ -160,12 +203,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   } else if (request.params.name === 'get_html') {
     try {
       const args = DingTalkDocParseRequestSchema.parse(request.params.arguments);
-      const cookie = await checkCookie(args.cookie);
 
-      const result = await getCompleteDocumentData(
+      const result = await runWithLoginRetry(
+        args.cookie,
         args.url_or_node_id,
-        cookie,
-        false // 不保存文件
+        (cookie) =>
+          getCompleteDocumentData(
+            args.url_or_node_id,
+            cookie,
+            false // 不保存文件
+          )
       );
 
       if (result.html) {

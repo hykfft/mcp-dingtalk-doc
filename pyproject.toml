@@ -5,13 +5,27 @@ build-backend = "hatchling.build"
 [project]
 name = "mcp-dingtalk-doc"
 version = "1.0.0"
-description = "钉钉文档解析 MCP 服务器 - 支持文档内容提取、HTML生成"
+description = "DingTalk Docs（钉钉文档）解析 MCP 服务器 - 支持文档内容提取与 HTML 生成（Model Context Protocol / Cursor MCP）"
 authors = [
     {name = "黄云堃", email = "hykfft@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = ["mcp", "dingtalk", "document", "parser"]
+keywords = [
+    "mcp",
+    "MCP",
+    "model-context-protocol",
+    "dingtalk",
+    "DingTalk",
+    "钉钉",
+    "钉钉文档",
+    "DingTalk Docs",
+    "alidocs",
+    "AliDocs",
+    "document",
+    "parser",
+    "html"
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
